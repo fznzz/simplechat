@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+option java_package = "io.grpc.simplechat";
+option java_outer_classname = "siChat";
+package Chat;
+
+service ChatRoom {
+  rpc join (stream Message) returns (stream Message) {}
+}
+
+message Message {
+  string user = 1;
+  string text = 2;
+}
