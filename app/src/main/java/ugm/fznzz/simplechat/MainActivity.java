@@ -60,8 +60,6 @@ public class MainActivity extends AppCompatActivity {
             ChatMessage chatMessage = new ChatMessage();
             chatMessage.setUser(temp2);
             chatMessage.setText(temp);
-
-
         }
     }
     public void onClick_con(View v)
@@ -95,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
         StreamObserver responseObserver = new StreamObserver<siChat.Message>() {
             @Override
             public void onNext(siChat.Message value) {
-                Log.d("uwu", value.getText());
+                tvPesan.append(value.getUser()+" : "+value.getText());
             }
 
             @Override
