@@ -43,7 +43,7 @@
         android:layout_marginEnd="8dp"
         android:hint="Port"
         android:inputType="number"
-        android:maxLength="4"
+        android:maxLength="5"
         app:layout_constraintEnd_toStartOf="@+id/bt_dis"
         app:layout_constraintTop_toTopOf="parent" />
 

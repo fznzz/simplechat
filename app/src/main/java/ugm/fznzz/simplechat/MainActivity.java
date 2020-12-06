@@ -12,6 +12,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.common.util.concurrent.ListenableFuture;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -28,6 +29,9 @@ public class MainActivity extends AppCompatActivity {
     String temp,temp2,temp_ip;
     Integer temp_port;
     Snackbar snackbar;
+    private Throwable failed;
+    StreamObserver responseObserver;
+    StreamObserver requestObserver;
 
     ManagedChannel channel;
     ChatRoomGrpc.ChatRoomStub asyncStub;
@@ -43,6 +47,8 @@ public class MainActivity extends AppCompatActivity {
         et_ip = findViewById(R.id.et_ip);
         et_port = findViewById(R.id.et_port);
         et_nama = findViewById(R.id.et_username);
+
+
     }
 
     public void onClick_send(View v)
@@ -60,10 +66,14 @@ public class MainActivity extends AppCompatActivity {
             ChatMessage chatMessage = new ChatMessage();
             chatMessage.setUser(temp2);
             chatMessage.setText(temp);
+            try {
+                requestObserver.onNext(chatMessage);
+            }
+            catch (Exception e)
+            {Log.d("error",e.getMessage());}
         }
     }
-    public void onClick_con(View v)
-    {
+    private void initGrpcComm() {
         temp_ip = et_ip.getText().toString();
         temp_port = Integer.parseInt(et_port.getText().toString());
         //Channel builder
@@ -73,6 +83,11 @@ public class MainActivity extends AppCompatActivity {
                 .build();
         futureStub = ChatRoomGrpc.newFutureStub(channel);
         asyncStub = ChatRoomGrpc.newStub(channel);
+        grpcStreamMessage();
+    }
+    public void onClick_con(View v)
+    {
+        initGrpcComm();
         //Notifikasi snackbar
         snackbar = Snackbar.make(findViewById(R.id.coordinator),"Tersambung dengan "+ temp_ip + " port " +temp_port,Snackbar.LENGTH_LONG);
         snackbar.show();
@@ -82,15 +97,9 @@ public class MainActivity extends AppCompatActivity {
         snackbar = Snackbar.make(findViewById(R.id.coordinator),"Terputus dengan "+temp_ip + " port " +temp_port,Snackbar.LENGTH_LONG);
         snackbar.show();
     }
-    private void grpcSendMessage(ChatMessage chatMessage) {
-        siChat.Message protoMessage = siChat.Message.newBuilder()
-                .setUser(chatMessage.getUser())
-                .setText(chatMessage.getText())
-                .build();
-    }
     private void grpcStreamMessage() {
         // response observer
-        StreamObserver responseObserver = new StreamObserver<siChat.Message>() {
+        responseObserver = new StreamObserver<siChat.Message>() {
             @Override
             public void onNext(siChat.Message value) {
                 tvPesan.append(value.getUser()+" : "+value.getText());
@@ -103,11 +112,11 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onCompleted() {
-
+                tvPesan.append("Disconnected");
             }
         };
 
         // server server stream with response observer
-        StreamObserver requestObserver = asyncStub.join(responseObserver);
+        requestObserver = asyncStub.join(responseObserver);
     }
 }
